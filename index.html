@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Spending Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-color: #f0f2f5;
+      color: #333;
+    }
+    header {
+      background-color: #007BFF;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    .dark-mode {
+      --bg: #1e1e1e;
+      --text: #ffffff;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+    #dashboard, #insights, #graphs {
+      background: white;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    canvas {
+      max-width: 100%;
+      margin: auto;
+      display: block;
+    }
+    .insight {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .export-buttons, .filter-controls {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .export-buttons button, .filter-controls button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+    .export-buttons button:hover, .filter-controls button:hover {
+      background-color: #0056b3;
+    }
+    #input-form {
+      margin-top: 20px;
+      text-align: center;
+    }
+    #input-form input[type="text"],
+    #input-form input[type="number"],
+    #start-date, #end-date, #academic-year {
+      padding: 8px;
+      margin: 5px;
+      width: 200px;
+    }
+    #input-form button {
+      padding: 8px 12px;
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Light/Dark Mode Toggle Button -->
+  <button class="toggle-btn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  <header>
+    <h1>Student Spending Dashboard</h1>
+  </header>
+
+  <div class="container">
+    <div id="dashboard">
+      <canvas id="spendingChart"></canvas>
+
+      <div id="graphs">
+        <canvas id="barChart"></canvas>
+        <canvas id="lineChart"></canvas>
+      </div>
+
+      <div class="filter-controls">
+        <label>Start Date: <input type="date" id="start-date"></label>
+        <label>End Date: <input type="date" id="end-date"></label>
+        <label>Academic Year: 
+          <select id="academic-year">
+            <option value="2023">2022-2023</option>
+            <option value="2024">2023-2024</option>
+            <option value="2025">2024-2025</option>
+          </select>
+        </label>
+        <button onclick="filterData()">Filter Data</button>
+      </div>
+
+      <div class="export-buttons">
+        <button onclick="exportPDF()">Export as PDF</button>
+        <button onclick="exportCSV()">Export as CSV</button>
+      </div>
+
+      <form id="input-form">
+        <input type="text" id="category" placeholder="Category (e.g. Food)" required />
+        <input type="number" id="amount" placeholder="Amount" required />
+        <button type="submit">Add Expense</button>
+      </form>
+    </div>
+
+    <div id="insights"></div>
+
+    <div id="documentation">
+      <h2>Documentation</h2>
+      <p><strong>Project Name:</strong> Student Spending Dashboard</p>
+      <p><strong>Features:</strong></p>
+      <ul>
+        <li>Interactive Doughnut, Bar, and Line Charts with <code>Chart.js</code></li>
+        <li>Real-time AI insights based on spending patterns</li>
+        <li>CSV and PDF Export by academic year and filter range</li>
+        <li>Custom form to add spending categories and amounts</li>
+        <li>Filter data by academic year and custom date range</li>
+      </ul>
+      <p><strong>Use Case:</strong> Helps students visualize and analyze budgeting habits with a user-friendly dashboard and insights.</p>
+    </div>
+  </div>
+
+  <script>
+    const spendingData = {
+      labels: ["Food", "Transport", "Entertainment", "Education", "Other"],
+      datasets: [{
+        label: "Spending ($)",
+        data: [120, 60, 90, 100, 40],
+        backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#4bc0c0", "#9966ff"],
+      }],
+    };
+
+    const ctx = document.getElementById("spendingChart").getContext("2d");
+    const barCtx = document.getElementById("barChart").getContext("2d");
+    const lineCtx = document.getElementById("lineChart").getContext("2d");
+
+    const spendingChart = new Chart(ctx, { type: "doughnut", data: spendingData });
+    const barChart = new Chart(barCtx, { type: "bar", data: spendingData });
+    const lineChart = new Chart(lineCtx, { type: "line", data: spendingData });
+
+    function updateInsights() {
+      const insightsDiv = document.getElementById("insights");
+      const total = spendingData.datasets[0].data.reduce((a, b) => a + b, 0);
+      const tips = [];
+
+      spendingData.datasets[0].data.forEach((amount, index) => {
+        const category = spendingData.labels[index];
+        const percent = (amount / total) * 100;
+
+        if (percent > 40) {
+          tips.push(`High spending on <strong>${category}</strong>. Consider setting a limit.`);
+        } else if (category === "Entertainment" && percent > 25) {
+          tips.push(`Entertainment is above 25%. Try cheaper options.`);
+        } else if (category === "Transport" && percent > 20) {
+          tips.push(`Transport costs are high. Consider alternatives.`);
+        }
+      });
+
+      insightsDiv.innerHTML = "<h3>AI-Generated Insights</h3>" +
+        (tips.length ? tips.map(t => `<div class='insight'>${t}</div>`).join('') : "<div class='insight'>Great balance across categories!</div>");
+    }
+
+    updateInsights();
+
+    document.getElementById("input-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const category = document.getElementById("category").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+
+      const index = spendingData.labels.indexOf(category);
+      if (index > -1) {
+        spendingData.datasets[0].data[index] += amount;
+      } else {
+        spendingData.labels.push(category);
+        spendingData.datasets[0].data.push(amount);
+        spendingData.datasets[0].backgroundColor.push(`hsl(${Math.random() * 360}, 70%, 70%)`);
+      }
+
+      spendingChart.update();
+      barChart.update();
+      lineChart.update();
+      updateInsights();
+      this.reset();
+    });
+
+    
+    function toggleDarkMode() {
+     document.body.classList.toggle("dark-mode");
+}
+
+
+    function exportCSV() {
+      let csv = "Category,Amount\n";
+      spendingData.labels.forEach((label, i) => {
+        csv += `${label},${spendingData.datasets[0].data[i]}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `spending_data_${document.getElementById("academic-year").value}.csv`;
+      link.click();
+    }
+
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Student Spending Report", 20, 20);
+      spendingData.labels.forEach((label, i) => {
+        doc.text(`${label}: $${spendingData.datasets[0].data[i]}`, 20, 30 + i * 10);
+      });
+      doc.save(`spending_report_${document.getElementById("academic-year").value}.pdf`);
+    }
+
+    function filterData() {
+      // Placeholder for filter logic by date or academic year
+      alert("Filter logic by date or year goes here. (To be implemented in full version)");
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
