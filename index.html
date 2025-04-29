@@ -7,27 +7,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      background-color: #f0f2f5;
-      color: #333;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
     }
-    header {
-      background-color: #007BFF;
-      color: white;
-      padding: 15px;
+    h1 {
       text-align: center;
     }
-    .dark-mode {
-      --bg: #1e1e1e;
-      --text: #ffffff;
-    }
-    .container {
-      max-width: 1000px;
-      margin: auto;
-      padding: 20px;
-    }
-    #dashboard, #insights, #graphs {
+    #dashboard, #insights, #summary, #scenario-mode {
       background: white;
       padding: 20px;
       margin-bottom: 30px;
@@ -35,7 +22,7 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
     canvas {
-      max-width: 100%;
+      max-width: 600px;
       margin: auto;
       display: block;
     }
@@ -47,8 +34,8 @@
       text-align: center;
       margin-top: 20px;
     }
-    .export-buttons button, .filter-controls button {
-      margin: 5px;
+    .export-buttons button, .filter-controls button{
+      margin: 0 10px;
       padding: 10px 15px;
       font-size: 14px;
       border: none;
@@ -57,16 +44,14 @@
       color: white;
       cursor: pointer;
     }
-    .export-buttons button:hover, .filter-controls button:hover {
+    .export-buttons button:hover, .filter-controls button:hover{
       background-color: #0056b3;
     }
     #input-form {
       margin-top: 20px;
-      text-align: center;
     }
     #input-form input[type="text"],
-    #input-form input[type="number"],
-    #start-date, #end-date, #academic-year {
+    #input-form input[type="number"] {
       padding: 8px;
       margin: 5px;
       width: 200px;
@@ -77,23 +62,37 @@
   </style>
 </head>
 <body>
-  
-  <!-- Light/Dark Mode Toggle Button -->
-  <button class="toggle-btn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
-  <header>
-    <h1>Student Spending Dashboard</h1>
-  </header>
+  <h1>Student Spending Dashboard</h1>
 
-  <div class="container">
-    <div id="dashboard">
-      <canvas id="spendingChart"></canvas>
+  <div id="scenario-mode">
+    <h3>Scenario Mode</h3>
+    <select id="scenarioSelect">
+      <option value="default">-- Select a Scenario --</option>
+      <option value="tight">Tight Budget Month</option>
+      <option value="scholarship">Scholarship Received</option>
+      <option value="emergency">Unexpected Expense</option>
+    </select>
+  </div>
 
-      <div id="graphs">
-        <canvas id="barChart"></canvas>
-        <canvas id="lineChart"></canvas>
-      </div>
+  <div id="dashboard">
+    <canvas id="spendingChart"></canvas>
+    <canvas id="barChart"></canvas>
+    <canvas id="lineChart"></canvas>
+    <div id="insights"></div>
+    </div>
+    
+    <div class="export-buttons">
+      <button onclick="exportPDF()">Export as PDF</button>
+      <button onclick="exportCSV()">Export as CSV</button>
+    </div>
 
-      <div class="filter-controls">
+    <form id="input-form">
+      <input type="text" id="category" placeholder="Category (e.g. Food)" required />
+      <input type="number" id="amount" placeholder="Amount" required />
+      <button type="submit">Add Expense</button>
+    </form>
+
+  <div class="filter-controls">
         <label>Start Date: <input type="date" id="start-date"></label>
         <label>End Date: <input type="date" id="end-date"></label>
         <label>Academic Year: 
@@ -106,52 +105,59 @@
         <button onclick="filterData()">Filter Data</button>
       </div>
 
-      <div class="export-buttons">
-        <button onclick="exportPDF()">Export as PDF</button>
-        <button onclick="exportCSV()">Export as CSV</button>
-      </div>
-
-      <form id="input-form">
-        <input type="text" id="category" placeholder="Category (e.g. Food)" required />
-        <input type="number" id="amount" placeholder="Amount" required />
-        <button type="submit">Add Expense</button>
-      </form>
-    </div>
-
-    <div id="insights"></div>
-
-    <div id="documentation">
-      <h2>Documentation</h2>
-      <p><strong>Project Name:</strong> Student Spending Dashboard</p>
-      <p><strong>Features:</strong></p>
-      <ul>
-        <li>Interactive Doughnut, Bar, and Line Charts with <code>Chart.js</code></li>
-        <li>Real-time AI insights based on spending patterns</li>
-        <li>CSV and PDF Export by academic year and filter range</li>
-        <li>Custom form to add spending categories and amounts</li>
-        <li>Filter data by academic year and custom date range</li>
-      </ul>
-      <p><strong>Use Case:</strong> Helps students visualize and analyze budgeting habits with a user-friendly dashboard and insights.</p>
-    </div>
+  <div id="summary">
+    <h3>Snapshot Summary</h3>
+    <p id="totalSpend"></p>
+    <p id="highestCategory"></p>
+    <p id="lowestCategory"></p>
+    <p id="trend"></p>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const spendingData = {
-      labels: ["Food", "Transport", "Entertainment", "Education", "Other"],
-      datasets: [{
-        label: "Spending ($)",
-        data: [120, 60, 90, 100, 40],
-        backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#4bc0c0", "#9966ff"],
-      }],
-    };
-
     const ctx = document.getElementById("spendingChart").getContext("2d");
     const barCtx = document.getElementById("barChart").getContext("2d");
     const lineCtx = document.getElementById("lineChart").getContext("2d");
 
-    const spendingChart = new Chart(ctx, { type: "doughnut", data: spendingData });
-    const barChart = new Chart(barCtx, { type: "bar", data: spendingData });
-    const lineChart = new Chart(lineCtx, { type: "line", data: spendingData });
+    const spendingData = {
+      labels: ["Food", "Transport", "Entertainment", "Education", "Other"],
+      datasets: [
+        {
+          label: "Spending ($)",
+          data: [120, 60, 90, 100, 40],
+          backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#4bc0c0", "#9966ff"],
+        },
+      ],
+    };
+
+    let spendingChart = new Chart(ctx, {
+      type: "doughnut",
+      data: spendingData,
+    });
+
+    let barChart = new Chart(barCtx, {
+      type: "bar",
+      data: spendingData,
+      options: {
+        responsive: true,
+      }
+    });
+
+    let lineChart = new Chart(lineCtx, {
+      type: "line",
+      data: {
+        labels: spendingData.labels,
+        datasets: [
+          {
+            label: "Weekly Trend ($)",
+            data: spendingData.datasets[0].data.map(v => v * (0.8 + Math.random() * 0.4)),
+            fill: false,
+            borderColor: "#333",
+            tension: 0.3
+          },
+        ]
+      }
+    });
 
     function updateInsights() {
       const insightsDiv = document.getElementById("insights");
@@ -163,11 +169,11 @@
         const percent = (amount / total) * 100;
 
         if (percent > 40) {
-          tips.push(`High spending on <strong>${category}</strong>. Consider setting a limit.`);
+          tips.push(`High spending on <strong>${category}</strong>. Consider setting a limit or cheaper alternatives.`);
         } else if (category === "Entertainment" && percent > 25) {
-          tips.push(`Entertainment is above 25%. Try cheaper options.`);
+          tips.push(`Entertainment takes up over 25%. Try lower-cost options like streaming or campus events.`);
         } else if (category === "Transport" && percent > 20) {
-          tips.push(`Transport costs are high. Consider alternatives.`);
+          tips.push(`Look into student transport discounts or shared rides to cut <strong>${category}</strong> costs.`);
         }
       });
 
@@ -175,7 +181,44 @@
         (tips.length ? tips.map(t => `<div class='insight'>${t}</div>`).join('') : "<div class='insight'>Great balance across categories!</div>");
     }
 
-    updateInsights();
+    function updateSummary() {
+      const total = spendingData.datasets[0].data.reduce((a, b) => a + b, 0);
+      const max = Math.max(...spendingData.datasets[0].data);
+      const min = Math.min(...spendingData.datasets[0].data);
+      const maxIndex = spendingData.datasets[0].data.indexOf(max);
+      const minIndex = spendingData.datasets[0].data.indexOf(min);
+      const trend = spendingData.datasets[0].data.map((v, i) => v - lineChart.data.datasets[0].data[i]);
+
+      document.getElementById("totalSpend").textContent = `Total Spending: $${total.toFixed(2)}`;
+      document.getElementById("highestCategory").textContent = `Highest Category: ${spendingData.labels[maxIndex]} ($${max})`;
+      document.getElementById("lowestCategory").textContent = `Lowest Category: ${spendingData.labels[minIndex]} ($${min})`;
+      document.getElementById("trend").textContent = `Weekly Trend: ${trend.every(v => v > 0) ? 'Rising' : trend.every(v => v < 0) ? 'Falling' : 'Mixed'}`;
+    }
+
+    function exportCSV() {
+      let csv = "Category,Amount\n";
+      spendingData.labels.forEach((label, i) => {
+        csv += `${label},${spendingData.datasets[0].data[i]}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "spending_data.csv";
+      link.click();
+    }
+
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Student Spending Report", 20, 20);
+
+      spendingData.labels.forEach((label, i) => {
+        doc.text(`${label}: $${spendingData.datasets[0].data[i]}`, 20, 30 + i * 10);
+      });
+
+      doc.save("spending_report.pdf");
+    }
 
     document.getElementById("input-form").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -193,45 +236,52 @@
 
       spendingChart.update();
       barChart.update();
+      lineChart.data.labels = spendingData.labels;
+      lineChart.data.datasets[0].data = spendingData.datasets[0].data.map(v => v * (0.8 + Math.random() * 0.4));
       lineChart.update();
+
       updateInsights();
+      updateSummary();
       this.reset();
     });
 
-    
-    function toggleDarkMode() {
-     document.body.classList.toggle("dark-mode");
-}
+    document.getElementById("scenarioSelect").addEventListener("change", function () {
+      const val = this.value;
+      if (val === "tight") {
+        spendingData.datasets[0].data = spendingData.datasets[0].data.map(v => v * 0.8);
+      } else if (val === "scholarship") {
+        spendingData.datasets[0].data = spendingData.datasets[0].data.map(v => v * 1.2);
+      } else if (val === "emergency") {
+        const i = Math.floor(Math.random() * spendingData.datasets[0].data.length);
+        spendingData.datasets[0].data[i] += 100;
+      }
 
+      spendingChart.update();
+      barChart.update();
+      lineChart.data.datasets[0].data = spendingData.datasets[0].data.map(v => v * (0.8 + Math.random() * 0.4));
+      lineChart.update();
+      updateInsights();
+      updateSummary();
+    });
 
-    function exportCSV() {
-      let csv = "Category,Amount\n";
-      spendingData.labels.forEach((label, i) => {
-        csv += `${label},${spendingData.datasets[0].data[i]}\n`;
-      });
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `spending_data_${document.getElementById("academic-year").value}.csv`;
-      link.click();
-    }
-
-    function exportPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.text("Student Spending Report", 20, 20);
-      spendingData.labels.forEach((label, i) => {
-        doc.text(`${label}: $${spendingData.datasets[0].data[i]}`, 20, 30 + i * 10);
-      });
-      doc.save(`spending_report_${document.getElementById("academic-year").value}.pdf`);
-    }
-
-    function filterData() {
-      // Placeholder for filter logic by date or academic year
-      alert("Filter logic by date or year goes here. (To be implemented in full version)");
-    }
+    updateInsights();
+    updateSummary();
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <div id="documentation">
+    <h2>Documentation</h2>
+    <p><strong>Project Name:</strong> Student Spending Dashboard</p>
+    <p><strong>Features:</strong></p>
+    <ul>
+      <li>Interactive Doughnut, Bar, and Line Charts using Chart.js</li>
+      <li>Real-time insights based on spending patterns using simple AI logic</li>
+      <li>Snapshot Summary for quick understanding of spending behavior</li>
+      <li>Scenario Mode simulating different financial situations</li>
+      <li>CSV and PDF Export functionality</li>
+      <li>Custom form to add user-defined spending categories and amounts</li>
+    </ul>
+    <p><strong>AI Logic:</strong> Insights are generated based on thresholds—categories exceeding 40% of total spending trigger cautionary tips. Entertainment or transport over a certain percent also provide suggestions. The logic is expandable and can be made smarter.</p>
+    <p><strong>Use Case:</strong> Designed for students to visualize and analyze their budgeting behavior. Encourages financial literacy and conscious spending habits.</p>
+  </div>
 </body>
 </html>
