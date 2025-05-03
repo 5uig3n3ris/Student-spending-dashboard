@@ -188,6 +188,21 @@
 
       insightsDiv.innerHTML = "<h3>AI-Generated Insights</h3>" +
         (tips.length ? tips.map(t => `<div class='insight'>${t}</div>`).join('') : "<div class='insight'>Great balance across categories!</div>");
+      const income = parseFloat(document.getElementById("income").value);
+      if (!isNaN(income) && income > 0) {
+         const ratio = (total / income) * 100;
+         document.getElementById("expenseIncomeRatio").textContent = `Expense-to-Income Ratio: ${ratio.toFixed(1)}%`;
+       } else {
+         document.getElementById("expenseIncomeRatio").textContent = `Expense-to-Income Ratio: Enter valid income`;
+       }
+       for (let i = 0; i < spendingData.labels.length; i++) {
+       const cat = spendingData.labels[i];
+       const amount = spendingData.datasets[0].data[i];
+       if (budgetGoals[cat] && amount > budgetGoals[cat]) {
+          tips.push(`<div class='insight'>Alert: Spending on <strong>${cat}</strong> exceeded the budget of $${budgetGoals[cat]}!</div>`);
+       }
+       }
+      
     }
 
     function updateSummary() {
