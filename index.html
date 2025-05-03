@@ -1,289 +1,287 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Student Spending Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f4f4f4;
-    }
-    h1 {
-      text-align: center;
-    }
-    #dashboard, #insights, #summary, #scenario-mode {
-      background: white;
-      padding: 20px;
-      margin-bottom: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    canvas {
-      max-width: 600px;
-      margin: auto;
-      display: block;
-    }
-    .insight {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    .export-buttons, .filter-controls {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .export-buttons button, .filter-controls button{
-      margin: 0 10px;
-      padding: 10px 15px;
-      font-size: 14px;
-      border: none;
-      border-radius: 5px;
-      background-color: #007BFF;
-      color: white;
-      cursor: pointer;
-    }
-    .export-buttons button:hover, .filter-controls button:hover{
-      background-color: #0056b3;
-    }
-    #input-form {
-      margin-top: 20px;
-    }
-    #input-form input[type="text"],
-    #input-form input[type="number"] {
-      padding: 8px;
-      margin: 5px;
-      width: 200px;
-    }
-    #input-form button {
-      padding: 8px 12px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Spending Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    #dashboard, #insights, #summary, #scenario-mode {
+      background: white;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    canvas {
+      max-width: 600px;
+      margin: auto;
+      display: block;
+    }
+    .insight {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .export-buttons, .filter-controls {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .export-buttons button, .filter-controls button{
+      margin: 0 10px;
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+    .export-buttons button:hover, .filter-controls button:hover{
+      background-color: #0056b3;
+    }
+    #input-form {
+      margin-top: 20px;
+    }
+    #input-form input[type="text"],
+    #input-form input[type="number"] {
+      padding: 8px;
+      margin: 5px;
+      width: 200px;
+    }
+    #input-form button {
+      padding: 8px 12px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Student Spending Dashboard</h1>
+  <h1>Student Spending Dashboard</h1>
 
-  <div id="scenario-mode">
-    <h3>Scenario Mode</h3>
-    <select id="scenarioSelect">
-      <option value="default">-- Select a Scenario --</option>
-      <option value="tight">Tight Budget Month</option>
-      <option value="scholarship">Scholarship Received</option>
-      <option value="emergency">Unexpected Expense</option>
-    </select>
-  </div>
+  <div id="scenario-mode">
+    <h3>Scenario Mode</h3>
+    <select id="scenarioSelect">
+      <option value="default">-- Select a Scenario --</option>
+      <option value="tight">Tight Budget Month</option>
+      <option value="scholarship">Scholarship Received</option>
+      <option value="emergency">Unexpected Expense</option>
+    </select>
+  </div>
 
-  <div id="dashboard">
-    <canvas id="spendingChart"></canvas>
-    <canvas id="barChart"></canvas>
-    <canvas id="lineChart"></canvas>
-    <div id="insights"></div>
-    </div>
-    
-    <div class="export-buttons">
-      <button onclick="exportPDF()">Export as PDF</button>
-      <button onclick="exportCSV()">Export as CSV</button>
-    </div>
+  <div id="dashboard">
+    <canvas id="spendingChart"></canvas>
+    <canvas id="barChart"></canvas>
+    <canvas id="lineChart"></canvas>
+    <div id="insights"></div>
+    </div>
+    
+    <div class="export-buttons">
+      <button onclick="exportPDF()">Export as PDF</button>
+      <button onclick="exportCSV()">Export as CSV</button>
+    </div>
 
-    <form id="input-form">
-      <input type="text" id="category" placeholder="Category (e.g. Food)" required />
-      <input type="number" id="amount" placeholder="Amount" required />
-      <button type="submit">Add Expense</button>
-    </form>
+    <form id="input-form">
+      <input type="text" id="category" placeholder="Category (e.g. Food)" required />
+      <input type="number" id="amount" placeholder="Amount" required />
+      <button type="submit">Add Expense</button>
+    </form>
 
-  <div class="filter-controls">
-        <label>Start Date: <input type="date" id="start-date"></label>
-        <label>End Date: <input type="date" id="end-date"></label>
-        <label>Academic Year: 
-          <select id="academic-year">
-            <option value="2023">2022-2023</option>
-            <option value="2024">2023-2024</option>
-            <option value="2025">2024-2025</option>
-          </select>
-        </label>
-        <button onclick="filterData()">Filter Data</button>
-      </div>
+  <div class="filter-controls">
+        <label>Start Date: <input type="date" id="start-date"></label>
+        <label>End Date: <input type="date" id="end-date"></label>
+        <label>Academic Year: 
+          <select id="academic-year">
+            <option value="2023">2022-2023</option>
+            <option value="2024">2023-2024</option>
+            <option value="2025">2024-2025</option>
+          </select>
+        </label>
+        <button onclick="filterData()">Filter Data</button>
+      </div>
 
-  <div id="summary">
-    <h3>Snapshot Summary</h3>
-    <p id="totalSpend"></p>
-    <p id="highestCategory"></p>
-    <p id="lowestCategory"></p>
-    <p id="trend"></p>
-  </div>
+  <div id="summary">
+    <h3>Snapshot Summary</h3>
+    <p id="totalSpend"></p>
+    <p id="highestCategory"></p>
+    <p id="lowestCategory"></p>
+    <p id="trend"></p>
+  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
-    const ctx = document.getElementById("spendingChart").getContext("2d");
-    const barCtx = document.getElementById("barChart").getContext("2d");
-    const lineCtx = document.getElementById("lineChart").getContext("2d");
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const ctx = document.getElementById("spendingChart").getContext("2d");
+    const barCtx = document.getElementById("barChart").getContext("2d");
+    const lineCtx = document.getElementById("lineChart").getContext("2d");
 
-    const spendingData = {
-      labels: \["Food", "Transport", "Entertainment", "Education", "Other"],
-      datasets: \[
-        {
-          label: "Spending (\$)",
-          data: \[120, 60, 90, 100, 40],
-          backgroundColor: \["#ff6384", "#36a2eb", "#ffce56", "#4bc0c0", "#9966ff"],
-        },
-      ],
-    };
+    const spendingData = {
+      labels: ["Food", "Transport", "Entertainment", "Education", "Other"],
+      datasets: [
+        {
+          label: "Spending ($)",
+          data: [120, 60, 90, 100, 40],
+          backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#4bc0c0", "#9966ff"],
+        },
+      ],
+    };
 
-    let spendingChart = new Chart(ctx, {
-      type: "doughnut",
-      data: spendingData,
-    });
+    let spendingChart = new Chart(ctx, {
+      type: "doughnut",
+      data: spendingData,
+    });
 
-    let barChart = new Chart(barCtx, {
-      type: "bar",
-      data: spendingData,
-      options: {
-        responsive: true,
-      }
-    });
+    let barChart = new Chart(barCtx, {
+      type: "bar",
+      data: spendingData,
+      options: {
+        responsive: true,
+      }
+    });
 
-    let lineChart = new Chart(lineCtx, {
-      type: "line",
-      data: {
-        labels: spendingData.labels,
-        datasets: \[
-          {
-            label: "Weekly Trend (\$)",
-            data: spendingData.datasets\[0].data.map(v => v \* (0.8 + Math.random() \* 0.4)),
-            fill: false,
-            borderColor: "#333",
-            tension: 0.3
-          },
-        ]
-      }
-    });
+    let lineChart = new Chart(lineCtx, {
+      type: "line",
+      data: {
+        labels: spendingData.labels,
+        datasets: [
+          {
+            label: "Weekly Trend ($)",
+            data: spendingData.datasets[0].data.map(v => v * (0.8 + Math.random() * 0.4)),
+            fill: false,
+            borderColor: "#333",
+            tension: 0.3
+          },
+        ]
+      }
+    });
 
-    function updateInsights() {
-      const insightsDiv = document.getElementById("insights");
-      const total = spendingData.datasets\[0].data.reduce((a, b) => a + b, 0);
-      const tips = \[];
+    function updateInsights() {
+      const insightsDiv = document.getElementById("insights");
+      const total = spendingData.datasets[0].data.reduce((a, b) => a + b, 0);
+      const tips = [];
 
-      spendingData.datasets\[0].data.forEach((amount, index) => {
-        const category = spendingData.labels\[index];
-        const percent = (amount / total) \* 100;
+      spendingData.datasets[0].data.forEach((amount, index) => {
+        const category = spendingData.labels[index];
+        const percent = (amount / total) * 100;
 
-        if (percent > 40) {
-          tips.push(`High spending on <strong>${category}</strong>. Consider setting a limit or cheaper alternatives.`);
-        } else if (category === "Entertainment" && percent > 25) {
-          tips.push(`Entertainment takes up over 25%. Try lower-cost options like streaming or campus events.`);
-        } else if (category === "Transport" && percent > 20) {
-          tips.push(`Look into student transport discounts or shared rides to cut <strong>${category}</strong> costs.`);
-        }
-      });
+        if (percent > 40) {
+          tips.push(`High spending on <strong>${category}</strong>. Consider setting a limit or cheaper alternatives.`);
+        } else if (category === "Entertainment" && percent > 25) {
+          tips.push(`Entertainment takes up over 25%. Try lower-cost options like streaming or campus events.`);
+        } else if (category === "Transport" && percent > 20) {
+          tips.push(`Look into student transport discounts or shared rides to cut <strong>${category}</strong> costs.`);
+        }
+      });
 
-      insightsDiv.innerHTML = "<h3>AI-Generated Insights</h3>" +
-        (tips.length ? tips.map(t => `<div class='insight'>${t}</div>`).join('') : "<div class='insight'>Great balance across categories!</div>");
-    }
+      insightsDiv.innerHTML = "<h3>AI-Generated Insights</h3>" +
+        (tips.length ? tips.map(t => `<div class='insight'>${t}</div>`).join('') : "<div class='insight'>Great balance across categories!</div>");
+    }
 
-    function updateSummary() {
-      const total = spendingData.datasets\[0].data.reduce((a, b) => a + b, 0);
-      const max = Math.max(...spendingData.datasets\[0].data);
-      const min = Math.min(...spendingData.datasets\[0].data);
-      const maxIndex = spendingData.datasets\[0].data.indexOf(max);
-      const minIndex = spendingData.datasets\[0].data.indexOf(min);
-      const trend = spendingData.datasets\[0].data.map((v, i) => v - lineChart.data.datasets\[0].data\[i]);
+    function updateSummary() {
+      const total = spendingData.datasets[0].data.reduce((a, b) => a + b, 0);
+      const max = Math.max(...spendingData.datasets[0].data);
+      const min = Math.min(...spendingData.datasets[0].data);
+      const maxIndex = spendingData.datasets[0].data.indexOf(max);
+      const minIndex = spendingData.datasets[0].data.indexOf(min);
+      const trend = spendingData.datasets[0].data.map((v, i) => v - lineChart.data.datasets[0].data[i]);
 
-      document.getElementById("totalSpend").textContent = `Total Spending: $${total.toFixed(2)}`;
-      document.getElementById("highestCategory").textContent = `Highest Category: ${spendingData.labels[maxIndex]} ($${max})`;
-      document.getElementById("lowestCategory").textContent = `Lowest Category: ${spendingData.labels[minIndex]} ($${min})`;
-      document.getElementById("trend").textContent = `Weekly Trend: ${trend.every(v => v > 0) ? 'Rising' : trend.every(v => v < 0) ? 'Falling' : 'Mixed'}`;
-    }
+      document.getElementById("totalSpend").textContent = `Total Spending: $${total.toFixed(2)}`;
+      document.getElementById("highestCategory").textContent = `Highest Category: ${spendingData.labels[maxIndex]} ($${max})`;
+      document.getElementById("lowestCategory").textContent = `Lowest Category: ${spendingData.labels[minIndex]} ($${min})`;
+      document.getElementById("trend").textContent = `Weekly Trend: ${trend.every(v => v > 0) ? 'Rising' : trend.every(v => v < 0) ? 'Falling' : 'Mixed'}`;
+    }
 
-    function exportCSV() {
-      let csv = "Category,Amount\n";
-      spendingData.labels.forEach((label, i) => {
-        csv += `${label},${spendingData.datasets[0].data[i]}\n`;
-      });
-      const blob = new Blob(\[csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "spending\_data.csv";
-      link.click();
-    }
+    function exportCSV() {
+      let csv = "Category,Amount\n";
+      spendingData.labels.forEach((label, i) => {
+        csv += `${label},${spendingData.datasets[0].data[i]}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "spending_data.csv";
+      link.click();
+    }
 
-    function exportPDF() {
-      const { jsPDF } = window\.jspdf;
-      const doc = new jsPDF();
-      doc.text("Student Spending Report", 20, 20);
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Student Spending Report", 20, 20);
 
-      spendingData.labels.forEach((label, i) => {
-        doc.text(`${label}: $${spendingData.datasets[0].data[i]}`, 20, 30 + i \* 10);
-      });
+      spendingData.labels.forEach((label, i) => {
+        doc.text(`${label}: $${spendingData.datasets[0].data[i]}`, 20, 30 + i * 10);
+      });
 
-      doc.save("spending\_report.pdf");
-    }
+      doc.save("spending_report.pdf");
+    }
 
-    document.getElementById("input-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const category = document.getElementById("category").value;
-      const amount = parseFloat(document.getElementById("amount").value);
+    document.getElementById("input-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const category = document.getElementById("category").value;
+      const amount = parseFloat(document.getElementById("amount").value);
 
-      const index = spendingData.labels.indexOf(category);
-      if (index > -1) {
-        spendingData.datasets\[0].data\[index] += amount;
-      } else {
-        spendingData.labels.push(category);
-        spendingData.datasets\[0].data.push(amount);
-        spendingData.datasets\[0].backgroundColor.push(`hsl(${Math.random() * 360}, 70%, 70%)`);
-      }
+      const index = spendingData.labels.indexOf(category);
+      if (index > -1) {
+        spendingData.datasets[0].data[index] += amount;
+      } else {
+        spendingData.labels.push(category);
+        spendingData.datasets[0].data.push(amount);
+        spendingData.datasets[0].backgroundColor.push(`hsl(${Math.random() * 360}, 70%, 70%)`);
+      }
 
-      spendingChart.update();
-      barChart.update();
-      lineChart.data.labels = spendingData.labels;
-      lineChart.data.datasets\[0].data = spendingData.datasets\[0].data.map(v => v \* (0.8 + Math.random() \* 0.4));
-      lineChart.update();
+      spendingChart.update();
+      barChart.update();
+      lineChart.data.labels = spendingData.labels;
+      lineChart.data.datasets[0].data = spendingData.datasets[0].data.map(v => v * (0.8 + Math.random() * 0.4));
+      lineChart.update();
 
-      updateInsights();
-      updateSummary();
-      this.reset();
-    });
+      updateInsights();
+      updateSummary();
+      this.reset();
+    });
 
-    document.getElementById("scenarioSelect").addEventListener("change", function () {
-      const val = this.value;
-      if (val === "tight") {
-        spendingData.datasets\[0].data = spendingData.datasets\[0].data.map(v => v \* 0.8);
-      } else if (val === "scholarship") {
-        spendingData.datasets\[0].data = spendingData.datasets\[0].data.map(v => v \* 1.2);
-      } else if (val === "emergency") {
-        const i = Math.floor(Math.random() \* spendingData.datasets\[0].data.length);
-        spendingData.datasets\[0].data\[i] += 100;
-      }
+    document.getElementById("scenarioSelect").addEventListener("change", function () {
+      const val = this.value;
+      if (val === "tight") {
+        spendingData.datasets[0].data = spendingData.datasets[0].data.map(v => v * 0.8);
+      } else if (val === "scholarship") {
+        spendingData.datasets[0].data = spendingData.datasets[0].data.map(v => v * 1.2);
+      } else if (val === "emergency") {
+        const i = Math.floor(Math.random() * spendingData.datasets[0].data.length);
+        spendingData.datasets[0].data[i] += 100;
+      }
 
-      spendingChart.update();
-      barChart.update();
-      lineChart.data.datasets\[0].data = spendingData.datasets\[0].data.map(v => v \* (0.8 + Math.random() \* 0.4));
-      lineChart.update();
-      updateInsights();
-      updateSummary();
-    });
+      spendingChart.update();
+      barChart.update();
+      lineChart.data.datasets[0].data = spendingData.datasets[0].data.map(v => v * (0.8 + Math.random() * 0.4));
+      lineChart.update();
+      updateInsights();
+      updateSummary();
+    });
 
-    updateInsights();
-    updateSummary();
-  </script>
+    updateInsights();
+    updateSummary();
+  </script>
 
-  <div id="documentation">
-    <h2>Documentation</h2>
-    <p><strong>Project Name:</strong> Student Spending Dashboard</p>
-    <p><strong>Features:</strong></p>
-    <ul>
-      <li>Interactive Doughnut, Bar, and Line Charts using Chart.js</li>
-      <li>Real-time insights based on spending patterns using simple AI logic</li>
-      <li>Snapshot Summary for quick understanding of spending behavior</li>
-      <li>Scenario Mode simulating different financial situations</li>
-      <li>CSV and PDF Export functionality</li>
-      <li>Custom form to add user-defined spending categories and amounts</li>
-    </ul>
-    <p><strong>AI Logic:</strong> Insights are generated based on thresholds—categories exceeding 40% of total spending trigger cautionary tips. Entertainment or transport over a certain percent also provide suggestions. The logic is expandable and can be made smarter.</p>
-    <p><strong>Use Case:</strong> Designed for students to visualize and analyze their budgeting behavior. Encourages financial literacy and conscious spending habits.</p>
-  </div>
-
+  <div id="documentation">
+    <h2>Documentation</h2>
+    <p><strong>Project Name:</strong> Student Spending Dashboard</p>
+    <p><strong>Features:</strong></p>
+    <ul>
+      <li>Interactive Doughnut, Bar, and Line Charts using Chart.js</li>
+      <li>Real-time insights based on spending patterns using simple AI logic</li>
+      <li>Snapshot Summary for quick understanding of spending behavior</li>
+      <li>Scenario Mode simulating different financial situations</li>
+      <li>CSV and PDF Export functionality</li>
+      <li>Custom form to add user-defined spending categories and amounts</li>
+    </ul>
+    <p><strong>AI Logic:</strong> Insights are generated based on thresholds—categories exceeding 40% of total spending trigger cautionary tips. Entertainment or transport over a certain percent also provide suggestions. The logic is expandable and can be made smarter.</p>
+    <p><strong>Use Case:</strong> Designed for students to visualize and analyze their budgeting behavior. Encourages financial literacy and conscious spending habits.</p>
+  </div>
 </body>
 </html>
