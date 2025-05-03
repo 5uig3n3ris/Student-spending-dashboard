@@ -84,13 +84,8 @@
     <div class="export-buttons">
       <button onclick="exportPDF()">Export as PDF</button>
       <button onclick="exportCSV()">Export as CSV</button>
-    </div>
-
-    <label for="income">Income (Monthly): </label>
-      <input type="number" id="income" placeholder="Income amount" required/>
   
     <form id="input-form">
-      <input type="number" id="budget" placeholder="Optional Budget Limit" />
       <input type="text" id="category" placeholder="Category (e.g. Food)" required />
       <input type="number" id="amount" placeholder="Amount" required />
       <button type="submit">Add Expense</button>
@@ -101,12 +96,11 @@
         <label>End Date: <input type="date" id="end-date"></label>
         <label>Academic Year: 
           <select id="academic-year">
-            <option value="2023">2022-2023</option>
+           <option value="2023">2022-2023</option>
             <option value="2024">2023-2024</option>
             <option value="2025">2024-2025</option>
           </select>
         </label>
-        <label>Income: <input type="number" id="income" placeholder="Enter your income" /></label
         <button onclick="filterData()">Filter Data</button>
   </div>
   
@@ -114,8 +108,6 @@
   <div id="summary">
     <h3>Snapshot Summary</h3>
     <p id="totalSpend"></p>
-    <p id="burnRate"></p>
-    <p id="expenseIncomeRatio"></p>
     <p id="highestCategory"></p>
     <p id="lowestCategory"></p>
     <p id="trend"></p>
@@ -126,7 +118,6 @@
     const ctx = document.getElementById("spendingChart").getContext("2d");
     const barCtx = document.getElementById("barChart").getContext("2d");
     const lineCtx = document.getElementById("lineChart").getContext("2d");
-    const budgetGoals = {};
     
 
     const spendingData = {
@@ -189,20 +180,7 @@
 
       insightsDiv.innerHTML = "<h3>AI-Generated Insights</h3>" +
         (tips.length ? tips.map(t => `<div class='insight'>${t}</div>`).join('') : "<div class='insight'>Great balance across categories!</div>");
-      const income = parseFloat(document.getElementById("income").value);
-      if (!isNaN(income) && income > 0) {
-         const ratio = (total / income) * 100;
-         document.getElementById("expenseIncomeRatio").textContent = `Expense-to-Income Ratio: ${ratio.toFixed(1)}%`;
-       } else {
-         document.getElementById("expenseIncomeRatio").textContent = `Expense-to-Income Ratio: Enter valid income`;
-       }
-       for (let i = 0; i < spendingData.labels.length; i++) {
-       const cat = spendingData.labels[i];
-       const amount = spendingData.datasets[0].data[i];
-       if (budgetGoals[cat] && amount > budgetGoals[cat]) {
-          tips.push(`<div class='insight'>Alert: Spending on <strong>${cat}</strong> exceeded the budget of $${budgetGoals[cat]}!</div>`);
-       }
-       }
+      
       
     }
 
@@ -214,27 +192,10 @@
       const minIndex = spendingData.datasets[0].data.indexOf(min);
       const trend = spendingData.datasets[0].data.map((v, i) => v - lineChart.data.datasets[0].data[i]);
 
-      document.getElementById("totalSpend").textContent = `Total Spending: $${total.toFixed(2)}`;
+      document.getElementById("totalSpend").teContent = `Total Spending: $${total.toFixed(2)}`;
       document.getElementById("highestCategory").textContent = `Highest Category: ${spendingData.labels[maxIndex]} ($${max})`;
       document.getElementById("lowestCategory").textContent = `Lowest Category: ${spendingData.labels[minIndex]} ($${min})`;
       document.getElementById("trend").textContent = `Weekly Trend: ${trend.every(v => v > 0) ? 'Rising' : trend.every(v => v < 0) ? 'Falling' : 'Mixed'}`;
-
-      const startDate = new Date(document.getElementById("start-date").value);
-      const endDate = new Date(document.getElementById("end-date").value);
-      const days = (endDate - startDate) / (1000 * 3600 * 24) + 1;
-      if (!isNaN(days) && days > 0) {
-          const burnRate = total / days;
-      document.getElementById("burnRate").textContent = `Burn Rate: $${burnRate.toFixed(2)} per day`;
-    } else {
-      document.getElementById("burnRate").textContent = `Burn Rate: Select valid dates`;
-          ‌ }
-      const income = parseFloat(document.getElementById("income").value);
-      if (!isNaN(income) && income > 0) {
-      const ratio = (total / income) * 100;
-      document.getElementById("expenseIncomeRatio").textContent = `Expense-to-Income Ratio: ${ratio.toFixed(1)}%`;
-    } else {
-      document.getElementById("expenseIncomeRatio").textContent = `Expense-to-Income Ratio: Enter valid income`;
-    }
       
     }
     
@@ -269,9 +230,6 @@
       e.preventDefault();
       const category = document.getElementById("category").value;
       const amount = parseFloat(document.getElementById("amount").value);
-      const budget = parseFloat(document.getElementById("budget").value);
-      if (!isNaN(budget) && budget > 0) {
-         budgetGoals[category] = budget;
       }
       const index = spendingData.labels.indexOf(category);
       if (index > -1) {
